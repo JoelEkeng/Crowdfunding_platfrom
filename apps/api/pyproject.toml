@@ -1,0 +1,58 @@
+[project]
+name = "fundchain-api"
+version = "0.1.0"
+description = "FundChain discovery API and confirmed-event indexer"
+requires-python = ">=3.11"
+dependencies = [
+  "alembic==1.17.0",
+  "asyncpg==0.30.0",
+  "fastapi==0.119.0",
+  "pydantic==2.12.0",
+  "pydantic-settings==2.11.0",
+  "python-json-logger==3.3.0",
+  "sqlalchemy[asyncio]==2.0.44",
+  "structlog==25.4.0",
+  "uvicorn[standard]==0.37.0",
+  "web3==7.13.0",
+]
+
+[dependency-groups]
+dev = [
+  "aiosqlite==0.21.0",
+  "httpx==0.28.1",
+  "mypy==1.18.2",
+  "pytest==8.4.2",
+  "pytest-asyncio==1.2.0",
+  "ruff==0.14.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fundchain"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = ["integration: requires local Anvil"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*.py" = ["E501"]
+"src/fundchain/api/routes/*.py" = ["B008"]
+"tests/integration/*.py" = ["ASYNC220", "ASYNC221", "ASYNC251"]
+"tests/e2e/*.py" = ["ASYNC220", "ASYNC221", "ASYNC251"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["alembic"]

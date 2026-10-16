@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: fundchain
+      POSTGRES_USER: fundchain
+      POSTGRES_PASSWORD: local-development-only
+    ports:
+      - "5432:5432"
+    volumes:
+      - fundchain-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fundchain -d fundchain"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fundchain-postgres:

@@ -1,0 +1,16 @@
+packages/contracts/cache/
+packages/contracts/out/
+packages/contracts/broadcast/
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
