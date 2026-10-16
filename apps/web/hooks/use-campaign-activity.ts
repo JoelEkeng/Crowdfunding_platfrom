@@ -1,66 +1,49 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { usePublicClient } from "wagmi";
-import { crowdfundingAbi } from "@/lib/abi/crowdfunding";
 import { appConfig } from "@/lib/config";
 
+type ApiEvent = {
+  event_type: string;
+  actor: `0x${string}` | null;
+  amount: string | null;
+  transaction_hash: string;
+  block_number: number;
+};
+
+type ApiEventList = {
+  items: ApiEvent[];
+  total: number;
+};
+
+const labels: Record<string, string> = {
+  CampaignCreated: "Campaign created",
+  RewardTierCreated: "Reward tier added",
+  Pledged: "Pledge",
+  FundsClaimed: "Creator claim",
+  Refunded: "Refund",
+};
+
 export function useCampaignActivity(campaignId: bigint) {
-  const client = usePublicClient({ chainId: appConfig.chainId });
   return useQuery({
     queryKey: ["campaign-activity", campaignId.toString()],
-    enabled: Boolean(client && appConfig.isConfigured && campaignId > 0n),
+    enabled: Boolean(appConfig.isApiConfigured && campaignId > 0n),
     queryFn: async () => {
-      if (!client) return [];
-      const [pledges, claims, refunds] = await Promise.all([
-        client.getContractEvents({
-          address: appConfig.contractAddress,
-          abi: crowdfundingAbi,
-          eventName: "Pledged",
-          args: { campaignId },
-          fromBlock: appConfig.deploymentBlock,
-          toBlock: "latest",
-        }),
-        client.getContractEvents({
-          address: appConfig.contractAddress,
-          abi: crowdfundingAbi,
-          eventName: "FundsClaimed",
-          args: { campaignId },
-          fromBlock: appConfig.deploymentBlock,
-          toBlock: "latest",
-        }),
-        client.getContractEvents({
-          address: appConfig.contractAddress,
-          abi: crowdfundingAbi,
-          eventName: "Refunded",
-          args: { campaignId },
-          fromBlock: appConfig.deploymentBlock,
-          toBlock: "latest",
-        }),
-      ]);
-      return [
-        ...pledges.map((event) => ({
-          type: "Pledge" as const,
-          address: event.args.supporter,
-          amount: event.args.amount,
-          hash: event.transactionHash,
-          block: event.blockNumber,
-        })),
-        ...claims.map((event) => ({
-          type: "Creator claim" as const,
-          address: event.args.creator,
-          amount: event.args.amount,
-          hash: event.transactionHash,
-          block: event.blockNumber,
-        })),
-        ...refunds.map((event) => ({
-          type: "Refund" as const,
-          address: event.args.supporter,
-          amount: event.args.amount,
-          hash: event.transactionHash,
-          block: event.blockNumber,
-        })),
-      ].sort((a, b) => Number((b.block ?? 0n) - (a.block ?? 0n)));
+      if (!appConfig.apiUrl)
+        throw new Error("Backend API URL is not configured.");
+      const response = await fetch(
+        `${appConfig.apiUrl}/api/v1/campaigns/${campaignId}/activity?page_size=100`,
+      );
+      if (!response.ok)
+        throw new Error(`Backend returned HTTP ${response.status}.`);
+      const data = (await response.json()) as ApiEventList;
+      return data.items.map((event) => ({
+        type: labels[event.event_type] ?? event.event_type,
+        address: event.actor,
+        amount: event.amount === null ? null : BigInt(event.amount),
+        hash: event.transaction_hash,
+        block: BigInt(event.block_number),
+      }));
     },
   });
 }
