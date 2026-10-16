@@ -3,6 +3,7 @@ from typing import Annotated
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from sqlalchemy.engine import make_url
 from web3 import Web3
 
 
@@ -30,6 +31,21 @@ class Settings(BaseSettings):
     rate_limit_window_seconds: int = Field(default=60, ge=1)
     rate_limit_storage_url: str = "memory://"
     log_level: str = "INFO"
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: str) -> str:
+        # Managed Postgres providers (e.g. Neon) ship libpq-style query params such as
+        # sslmode/channel_binding. SQLAlchemy forwards them to asyncpg.connect(), which
+        # rejects sslmode. Translate it to asyncpg's `ssl` argument.
+        url = make_url(value)
+        query = dict(url.query)
+        query.pop("channel_binding", None)
+        sslmode = query.pop("sslmode", None)
+        if sslmode:
+            query["ssl"] = sslmode
+            url = url.set(query=query)
+        return url.render_as_string(hide_password=False)
 
     @field_validator("rpc_url")
     @classmethod

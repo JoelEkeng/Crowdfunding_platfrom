@@ -36,7 +36,7 @@ class IndexedBlock(Base):
 
 class Campaign(Base):
     __tablename__ = "campaigns"
-    campaign_id: Mapped[Decimal] = mapped_column(UINT256, primary_key=True)
+    campaign_id: Mapped[Decimal] = mapped_column(UINT256, primary_key=True, autoincrement=False)
     creator: Mapped[str] = mapped_column(String(42), nullable=False, index=True)
     token: Mapped[str] = mapped_column(String(42), nullable=False, index=True)
     goal: Mapped[Decimal] = mapped_column(UINT256, nullable=False)

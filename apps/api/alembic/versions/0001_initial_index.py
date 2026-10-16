@@ -27,7 +27,7 @@ def upgrade() -> None:
     )
     op.create_table(
         "campaigns",
-        sa.Column("campaign_id", uint256, primary_key=True),
+        sa.Column("campaign_id", uint256, primary_key=True, autoincrement=False),
         sa.Column("creator", sa.String(42), nullable=False),
         sa.Column("token", sa.String(42), nullable=False),
         sa.Column("goal", uint256, nullable=False),
