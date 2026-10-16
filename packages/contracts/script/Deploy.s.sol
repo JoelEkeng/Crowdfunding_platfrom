@@ -11,8 +11,9 @@ contract Deploy is Script {
         uint256 expectedChainId = vm.envUint("EXPECTED_CHAIN_ID");
         if (block.chainid != expectedChainId) revert ChainIdMismatch(block.chainid, expectedChainId);
 
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
+        // uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        // address deployer = vm.addr(deployerPrivateKey);
+        address deployer = vm.addr(vm.envUint("DEPLOYER_PRIVATE_KEY"));
         address token = vm.envAddress("TOKEN_ADDRESS");
         address[] memory trustedTokens = new address[](1);
         trustedTokens[0] = token;
@@ -21,7 +22,7 @@ contract Deploy is Script {
         console2.log("Deployer", deployer);
         console2.log("Trusted token", token);
 
-        vm.startBroadcast(deployerPrivateKey);
+        vm.startBroadcast();
         crowdfunding = new Crowdfunding(trustedTokens);
         vm.stopBroadcast();
 

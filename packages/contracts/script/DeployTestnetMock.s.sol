@@ -14,10 +14,13 @@ contract DeployTestnetMock is Script {
         if (block.chainid != expectedChainId) revert ChainIdMismatch(block.chainid, expectedChainId);
         if (!vm.envBool("ALLOW_TESTNET_MOCK_TOKEN")) revert MockDeploymentNotAcknowledged();
 
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        address deployer = vm.addr(deployerPrivateKey);
+        // uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        // address deployer = vm.addr(deployerPrivateKey);
 
-        vm.startBroadcast(deployerPrivateKey);
+        // vm.startBroadcast(deployerPrivateKey);
+        address deployer = msg.sender;
+
+        vm.startBroadcast();
         token = new MockERC20("FundChain Testnet Token", "FCT");
         token.mint(deployer, 1_000_000 ether);
         address[] memory trustedTokens = new address[](1);
